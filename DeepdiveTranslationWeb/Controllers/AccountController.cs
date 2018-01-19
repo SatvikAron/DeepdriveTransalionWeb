@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using DeepdiveTranslationWeb.Models;
 using DeepdiveTranslationWeb.Models.AccountViewModels;
 using DeepdiveTranslationWeb.Services;
+using Microsoft.AspNetCore.Localization;
 
 namespace DeepdiveTranslationWeb.Controllers
 {
@@ -65,6 +66,12 @@ namespace DeepdiveTranslationWeb.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    var code = user == null || string.IsNullOrEmpty(user.CultureCode) ? "en-US" : user.CultureCode;
+                    var key = CookieRequestCultureProvider.DefaultCookieName;
+                    var value= CookieRequestCultureProvider.MakeCookieValue(
+                        new RequestCulture(code));
+                    Response.Cookies.Append(key,value);
                     return RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
